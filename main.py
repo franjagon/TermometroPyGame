@@ -37,49 +37,6 @@ class BoxDatos():
     
         '''Nuestra caja será un rectángulo en el que podremos escribir, por tanto le asignamos una fuente y un tamaño.'''
         self.__fuente = pygame.font.SysFont("Verdana", 21)
-    
-    '''Este método setter/getter permitirá cambiar el valor de la caja de entrada.
-       Si no se informa un valor en la invocación, el método devolverá el valor que la caja de entrada tenga en ese momento.
-       Si se informa, validará que sea un valor numérico entero, para ello lo convertirá en una cadena (para poderla escribir en la caja) y después intentará castearla a entero.
-       Si el valor informado no es válido el setter no hará nada y por ende el valor de la caja de entrada no se cambiará.'''
-    def valor(self, val = None):
-        if val == None:
-            self.__valor = float(self.__strValor)
-            return self.__valor
-        else:
-            val = str(val)
-            try:
-                self.__valor = round(float(val), 2)
-                self.__strValor = "{}".format(str(self.__valor))
-                
-                if '.' in self.__strValor:
-                    self.__cuentaPuntos = 1
-                else:
-                    self.__cuentaPuntos = 0
-            except:
-                pass
-        
-    '''Este método nos permitirá evaluar los eventos de la caja de entrada.
-       Dentro del método KEYDOWN de PYGAME existe un elemento -unicode- que nos devuelve el caracter de la tecla que pulsemos.
-       Cuando tecleemos una cantidad, habrá que irla añadiendo dígito a dígito a la cadena que se representa (como una foto) en la caja de entrada (y fijamos un máximo de diez dígitos).
-       También debemos permitir la correción, atendiendo a la tecla de borrado, y eliminando el ultimo carácter de la cadena representada.
-       Al tiempo que modificamos la cadena representada tenemos que modificar también el valor numérico y para ello usamos el método -valor-'''
-    def unEventoTecla(self, evento):
-        if evento.type == pygame.KEYDOWN:
-            if evento.unicode in '.0123456789' and len(self.__strValor) < 10:
-                if evento.unicode == '.' and self.__cuentaPuntos == 0:
-                    self.__cuentaPuntos += 1
-                    self.__strValor += evento.unicode
-                elif evento.unicode != '.':
-                    self.__strValor += evento.unicode
-            elif evento.key == K_BACKSPACE:
-                if self.__strValor[-1] == '.':
-                    self.__cuentaPuntos -= 1
-                    
-                self.__strValor = self.__strValor[:-1]
-                
-                if len(self.__strValor) == 0:
-                    self.valor(0)
         
     '''Este método nos permitirá renderizar la caja de entrada. Devolverá la caja y una foto de su texto.'''
     def render(self):
@@ -93,6 +50,54 @@ class BoxDatos():
         rectangulo.size = self.__tama
         
         return [rectangulo, fotoTexto]
+        
+    '''Este método nos permitirá evaluar los eventos de la caja de entrada.
+       Dentro del método KEYDOWN de PYGAME existe un elemento -unicode- que nos devuelve el caracter de la tecla que pulsemos.
+       Cuando tecleemos una cantidad, habrá que irla añadiendo dígito a dígito a la cadena que se representa (como una foto) en la caja de entrada (y fijamos un máximo de diez dígitos).
+       También debemos permitir la correción, atendiendo a la tecla de borrado, y eliminando el ultimo carácter de la cadena representada.
+       Al tiempo que modificamos la cadena representada tenemos que modificar también el valor numérico y para ello usamos el método -valor-'''
+    def unEventoTecla(self, evento):
+        if evento.type == pygame.KEYDOWN:
+            if evento.unicode in '-.0123456789' and len(self.__strValor) < 10:
+                if evento.unicode == '-' and len(self.__strValor) == 0:
+                    self.__strValor += evento.unicode
+                if evento.unicode == '.' and self.__cuentaPuntos == 0:
+                    if len(self.__strValor) == 0:
+                        self.__strValor += "0"                        
+                    self.__cuentaPuntos += 1
+                    self.__strValor += evento.unicode
+                elif evento.unicode not in '-.':
+                    self.__strValor += evento.unicode
+            elif evento.key == K_BACKSPACE:
+                if len(self.__strValor) != 0:
+                    if self.__strValor[-1] == '.':
+                        self.__cuentaPuntos -= 1                        
+                    self.__strValor = self.__strValor[:-1]
+    
+    '''Este método setter/getter permitirá cambiar el valor de la caja de entrada.
+       Si no se informa un valor en la invocación, el método devolverá el valor que la caja de entrada tenga en ese momento.
+       Si se informa, validará que sea un valor numérico entero, para ello lo convertirá en una cadena (para poderla escribir en la caja) y después intentará castearla a entero.
+       Si el valor informado no es válido el setter no hará nada y por ende el valor de la caja de entrada no se cambiará.'''
+    def valor(self, val = None):
+        if val == None:
+            if len(self.__strValor) == 0:
+                self.valor(0)
+            else:
+                self.__valor = float(self.__strValor)
+                
+            return self.__valor
+        else:
+            val = str(val)
+            try:
+                self.__valor = round(float(val), 2)
+                self.__strValor = "{}".format(str(self.__valor))
+                
+                if '.' in self.__strValor:
+                    self.__cuentaPuntos = 1
+                else:
+                    self.__cuentaPuntos = 0
+            except:
+                pass
     
     '''Este método setter/getter permitirá cambiar el tamaño de la caja de entrada.
        Si no se informa una lista con dos valores en la invocación, el método devolverá el tamaño que la caja de entrada tenga en ese momento.
@@ -197,7 +202,7 @@ class ConversordeTemperatura():
             self.__frame.blit(self.selectorUnidad.disfraz(), (108, 153))
             
             '''Para poder redibujar la caja de entrada y su valor, ejecutamos el método -render- del objeto BoxDatos.
-               Pintamos el rectángulo que devuelve en la primera posición de la lista con su color RGB (blanco).
+               Pintamos el rectángulo que devuelve en la primera posición de la lista con su color RGB.
                Y dibujamos la foto del texto que devuelve en la segunda posición de la lista, como si fuera un disfraz.'''
             renderCaja = self.boxEntrada.render()
             pygame.draw.rect(self.__frame, (255, 255, 200), renderCaja[0])
